@@ -1,0 +1,16 @@
+[project]
+name = "sonatype-report-fetcher"
+version = "1.0.0"
+requires-python = ">=3.9"
+dependencies = [
+    "requests",
+    "python-dotenv",
+]
+
+[project.scripts]
+sonatype_report_fetcher = "sonatype_report_fetcher.__main__:fetch"
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.15.0",
+]

@@ -1,0 +1,112 @@
+name: Build & Release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  UV_SYSTEM_PYTHON: 1
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset: sonatype-report-fetcher-linux
+          - os: windows-latest
+            asset: sonatype-report-fetcher-windows
+          - os: macos-latest
+            asset: sonatype-report-fetcher-macos
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install Python deps
+        run: |
+          uv python install
+          uv sync --frozen
+
+      - name: Build with PyInstaller
+        shell: bash
+        run: |
+          ADDDATA="--add-data=config:config --add-data=src/sonatype_report_fetcher:sonatype_report_fetcher"
+          EXTRA="--hidden-import=requests --hidden-import=python-dotenv"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            uv run pyinstaller --onefile --name sonatype_report_fetcher ${ADDATA//:/;} $EXTRA src/sonatype_report_fetcher/__main__.py
+          else
+            uv run pyinstaller --onefile --name sonatype_report_fetcher $ADDDATA $EXTRA src/sonatype_report_fetcher/__main__.py
+          fi
+
+      - name: Package artifacts
+        shell: bash
+        run: |
+          mkdir -p ${{ matrix.asset }}
+          exe="sonatype_report_fetcher"
+          [ "${{ runner.os }}" = "Windows" ] && exe="${exe}.exe"
+          cp dist/$exe ${{ matrix.asset }}/
+          echo $exe > ${{ matrix.asset }}/executable_name.txt
+          cp -r config ${{ matrix.asset }}/
+          cp README.md ${{ matrix.asset }}/
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            powershell Compress-Archive ${{ matrix.asset }} ${{ matrix.asset }}.zip
+          else
+            tar -czf ${{ matrix.asset }}.tar.gz ${{ matrix.asset }}/
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}.*
+          retention-days: 1
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Clean previous releases
+        run: |
+          gh release list --json tagName --jq '.[].tagName' | while read tag; do
+            [ -n "$tag" ] && gh release delete "$tag" --yes --cleanup-tag
+          done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          else
+            echo "version=main-$(date +'%Y%m%d-%H%M%S')" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: IQ Report Fetcher
+          body: |
+            ## IQ Report Fetcher
+            Release Date: ${{ steps.date.outputs.date }}
+          files: |
+            sonatype-report-fetcher-windows.zip
+            sonatype-report-fetcher-macos.tar.gz
+            sonatype-report-fetcher-linux.tar.gz

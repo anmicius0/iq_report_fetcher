@@ -1,0 +1,65 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions
+*.pyd
+
+# Distribution / packaging
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+MANIFEST
+
+# Installer logs
+downloads/
+*.log
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# PyInstaller
+main
+main.spec
+
+# Output directories
+raw_reports/
+reports/
+
+# macOS
+.DS_Store
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# PyInstaller build artifacts
+build/*
+build/**
+
+dist/*
+dist/**
+
+# Ignore all files in build/ and dist/ recursively
+build/
+dist/
+
+# Environment variables
+.env
+
+*.csv
+scripts/
+logs/
