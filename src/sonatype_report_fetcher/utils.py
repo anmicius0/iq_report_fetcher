@@ -39,9 +39,8 @@ class PrettyFormatter(logging.Formatter):
     }
 
     def format(self, record: logging.LogRecord) -> str:
-        msg = super().format(record)
-        color = self.LOG_COLORS.get(record.levelno, Colors.BLUE)
-        return f"{color}{msg}{Colors.END}"
+        # No color formatting; return plain message
+        return super().format(record)
 
 
 def setup_logging(log_dir: Path, log_level_str: str = "INFO") -> logging.Logger:
@@ -83,13 +82,13 @@ def log_completion_summary(
     success_count: int, total_apps: int, failed_apps: Optional[List[str]] = None
 ) -> bool:
     """Log a summary of the completion status."""
-    logger.info("🏁 Collection phase completed")
-    logger.info(f"✅ Successfully processed: {success_count}/{total_apps} applications")
+    logger.info("Collection phase completed")
+    logger.info(f"Successfully processed: {success_count}/{total_apps} applications")
     if success_count == 0:
-        logger.error("❌ No reports were successfully fetched")
+        logger.error("No reports were successfully fetched")
         return False
     if failed_apps:
-        logger.warning(f"⚠️  {len(failed_apps)} applications failed:")
+        logger.warning(f"{len(failed_apps)} applications failed:")
         for app_name in failed_apps[:5]:
             logger.warning(f"   • {app_name}")
         if len(failed_apps) > 5:
@@ -99,10 +98,10 @@ def log_completion_summary(
 
 def log_consolidation_result(output_path, row_count: int, file_size: int) -> None:
     """Log the result of the consolidation process."""
-    logger.info("🎉 CONSOLIDATION COMPLETED SUCCESSFULLY")
-    logger.info(f"💾 CSV file saved: {output_path}")
-    logger.info(f"📊 Total rows generated: {row_count:,}")
-    logger.info(f"📁 File size: {file_size:,} bytes")
+    logger.info("Consolidation completed successfully")
+    logger.info(f"CSV file saved: {output_path}")
+    logger.info(f"Total rows generated: {row_count:,}")
+    logger.info(f"File size: {file_size:,} bytes")
 
 
 F = TypeVar("F", bound=Callable[..., Any])

@@ -25,11 +25,9 @@ def fetch() -> None:
 
     # Now that logging is configured, emit startup messages
     log_start_header("IQ SERVER REPORT FETCHER STARTING")
-    logger.info("🔧 Loading configuration…")
-    logger.info("✅ Configuration loaded successfully")
-    logger.info("🔧 Configuring logger…")
-    logger.info(f"✅ Log directory: {log_dir}")
-    logger.info("")
+    # Consolidated configuration loading and logger setup messages
+    logger.info("Loading configuration and configuring logger...")
+    logger.info(f"Log directory: {log_dir}\n")
     RawReportFetcher(cfg).fetch_all_reports()
 
 

@@ -308,27 +308,25 @@ class RawReportFetcher:
 
     def _fetch_org_id_to_name(self) -> dict:
         """Fetch all organizations and build id->name mapping."""
-        log_section("🔍 Fetching organizations from IQ Server...")
+        log_section("Fetching organizations from IQ Server...")
         orgs = self.iq.get_organizations()
         if not orgs:
-            logger.warning(
-                "⚠️  Could not fetch organizations; will use org ID as fallback"
-            )
+            logger.warning("Could not fetch organizations; will use org ID as fallback")
             return {}
-        logger.info(f"✅ Successfully mapped {len(orgs)} organizations")
+        logger.info(f"Mapped {len(orgs)} organizations")
         return {
             str(org.get("id")): org.get("name", "") for org in orgs if org.get("id")
         }
 
     def fetch_all_reports(self) -> None:
         """Main method to fetch, process, and write all reports."""
-        log_section("🚀 Starting report fetch process...")
+        log_section("Starting report fetch process...")
         if self.writer.output_path:
-            logger.info(f"📂 Output directory: {self.writer.output_path.absolute()}")
+            logger.info(f"Output directory: {self.writer.output_path.absolute()}")
 
         apps = self._get_applications()
         if not apps:
-            logger.warning("⚠️  No applications to process")
+            logger.warning("No applications to process")
             return
 
         total = len(apps)
@@ -336,7 +334,7 @@ class RawReportFetcher:
         success_count = 0
         failed_apps = []
 
-        logger.info(f"⚡ Processing {total} applications sequentially…")
+        logger.info(f"Processing {total} applications sequentially...")
         for i, app in enumerate(apps, start=1):
             app_name = app.get("name", "unknown")
             public_id = app.get("publicId", "unknown")
@@ -357,14 +355,14 @@ class RawReportFetcher:
 
     def _get_applications(self) -> List[Application]:
         """Fetch and display applications."""
-        log_section("🔍 Fetching applications from IQ Server...")
+        log_section("Fetching applications from IQ Server...")
         apps = self.iq.get_applications(self.config.organization_id)
 
         if not apps:
-            logger.error("❌ Failed to fetch applications or no applications found")
+            logger.error("Failed to fetch applications or no applications found")
             return []
 
-        logger.info(f"✅ Discovered {len(apps)} applications")
+        logger.info(f"Discovered {len(apps)} applications")
         try:
             details = [f"{a.get('name')}({a.get('publicId')})" for a in apps]
             logger.debug("Application details: %s", details)
